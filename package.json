@@ -1,0 +1,19 @@
+{
+  "name": "ipfs-cli-helper",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "cli-table3": "^0.6.5"
+  },
+  "scripts": {
+    "pintable": "bun run src/pintable.ts",
+    "pin": "bun run src/pin.ts"
+  }
+}

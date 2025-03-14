@@ -1,14 +1,23 @@
 import { exec } from "node:child_process";
 import util from "node:util";
 import Table from "cli-table3";
+import { formatSize } from "./utils/format-size";
 
 const execAsync = util.promisify(exec);
 
+/**
+ * Run the command `ipfs files ls /` to list all the labels
+ * then split the strings from the list of results to get all the folder name
+ */
 async function listFiles(): Promise<string[]> {
 	const { stdout } = await execAsync("ipfs files ls /");
 	return stdout.trim().split("\n");
 }
 
+/**
+ * Run the command `ipfs files stat /<path>` to get the CID and Size of each file/directory
+ * For directory we will be using "CumulativeSize", otherwise use "Size"
+ */
 async function getFileStat(path: string) {
 	const { stdout } = await execAsync(`ipfs files stat /"${path}"`);
 	const lines = stdout.trim().split("\n");
@@ -35,10 +44,10 @@ async function getFileStat(path: string) {
 	};
 }
 
-function formatSize(bytes: number): string {
-	return `${(bytes / 1024 ** 3).toFixed(4)} GB`;
-}
-
+/**
+ * If user passes the 'enhanced' flag using either `--enhanced` or `-E`, we print out a nice table using cli-table3
+ * otherwise we print out a simple list
+ */
 async function main() {
 	const args = process.argv.slice(2);
 	const enhanced = args.includes("--enhanced") || args.includes("-E");

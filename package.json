@@ -4,19 +4,18 @@
   "type": "module",
   "private": true,
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/inquirer": "^9.0.7"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "dependencies": {
-    "@types/inquirer": "^9.0.7",
     "cli-table3": "^0.6.5",
     "inquirer": "^12.4.3"
   },
   "scripts": {
     "pintable": "bun run src/pintable.ts",
-    "pintable:interactive": "bun run src/pintable.ts --interactive",
     "peertable": "bun run src/peertable.ts",
     "pin": "bun run src/pin.ts"
   }

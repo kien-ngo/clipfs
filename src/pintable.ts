@@ -1,9 +1,17 @@
 import { exec } from "node:child_process";
 import util from "node:util";
 import Table from "cli-table3";
+import inquirer from "inquirer";
 import { formatSize } from "./utils/format-size";
 
 const execAsync = util.promisify(exec);
+
+type FileData = {
+  name: string;
+  cid: string;
+  size: number;
+  type: string;
+};
 
 /**
  * Run the command `ipfs files ls /` to list all the labels
@@ -45,34 +53,120 @@ async function getFileStat(path: string) {
 }
 
 /**
- * If user passes the 'enhanced' flag using either `--enhanced` or `-E`, we print out a nice table using cli-table3
- * otherwise we print out a simple list
+ * Display an interactive table of files and let user select a row
+ * After selection, show a menu of options from 0-4
+ */
+async function displayInteractiveTable(filesData: FileData[]) {
+  // First display the table
+  const table = new Table({ 
+    head: ["Name", "CID", "Size", "Type"],
+    style: { head: ["cyan"] }
+  });
+  
+  for (const file of filesData) {
+    table.push([
+      file.name,
+      file.cid,
+      formatSize(file.size),
+      file.type
+    ]);
+  }
+  
+  console.log(table.toString());
+  
+  // Let user select a row
+  const { selectedFile } = await inquirer.prompt([
+    {
+      type: "list",
+      name: "selectedFile",
+      message: "Select a file (use arrow keys):",
+      choices: [
+        { name: "Exit", value: -1 },
+        ...filesData.map((file, index) => ({
+          name: `${file.name} (${file.type}, ${formatSize(file.size)})`,
+          value: index
+        })),
+        { name: "Exit", value: -1 }
+      ]
+    }
+  ]);
+  
+  // Exit if user selected the Exit option
+  if (selectedFile === -1) {
+    console.log("Exiting...");
+    return;
+  }
+  
+  const selected = filesData[selectedFile];
+  console.log(`\nSelected: ${selected.name} (${selected.cid})`);
+  
+  // Show options menu
+  const { action } = await inquirer.prompt([
+    {
+      type: "list",
+      name: "action",
+      message: "Choose an action:",
+      choices: [
+        { name: "0. View details", value: 0 },
+        { name: "1. Pin file", value: 1 },
+        { name: "2. Unpin file", value: 2 },
+        { name: "3. Copy CID to clipboard", value: 3 },
+        { name: "4. Exit", value: 4 }
+      ]
+    }
+  ]);
+  
+  // Handle the selected action
+  switch (action) {
+    case 0:
+      console.log("\nFile Details:");
+      console.log(`Name: ${selected.name}`);
+      console.log(`CID: ${selected.cid}`);
+      console.log(`Size: ${formatSize(selected.size)}`);
+      console.log(`Type: ${selected.type}`);
+      break;
+    case 1:
+      console.log(`Pinning ${selected.name}...`);
+      // Implementation would go here
+      break;
+    case 2:
+      console.log(`Unpinning ${selected.name}...`);
+      // Implementation would go here
+      break;
+    case 3:
+      // Copy to clipboard - using a simple approach for now
+      await execAsync(`echo "${selected.cid}" | pbcopy`);
+      console.log("CID copied to clipboard!");
+      break;
+    case 4:
+      console.log("Exiting...");
+      break;
+  }
+}
+
+/**
+ * Main function to get files and display them interactively
  */
 async function main() {
-	const args = process.argv.slice(2);
-	const enhanced = args.includes("--enhanced") || args.includes("-E");
-	const files = await listFiles();
-	if (enhanced) {
-		const table = new Table({ head: ["CID", "Size", "Type"] });
-		for (const file of files) {
-			try {
-				const { cid, size, type } = await getFileStat(file);
-				table.push([cid, formatSize(size), type]);
-			} catch (error) {
-				console.error(`Error fetching data for ${file}:`, error);
-			}
-		}
-		console.log(table.toString());
-	} else {
-		for (const file of files) {
-			try {
-				const { cid, size, type } = await getFileStat(file);
-				console.log(`${cid} ${type} ${formatSize(size)}`);
-			} catch (error) {
-				console.error(`Error fetching data for ${file}:`, error);
-			}
-		}
-	}
+  const files = await listFiles();
+  
+  // Collect all file data first
+  const filesData: FileData[] = [];
+  for (const file of files) {
+    try {
+      const { cid, size, type } = await getFileStat(file);
+      filesData.push({ 
+        name: file,
+        cid, 
+        size, 
+        type 
+      });
+    } catch (error) {
+      console.error(`Error fetching data for ${file}:`, error);
+    }
+  }
+  
+  await displayInteractiveTable(filesData);
 }
 
 main().catch(console.error);

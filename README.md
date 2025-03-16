@@ -1,27 +1,28 @@
-# ipfs-cli-helper
+# clipfs
 
 A CLI tool to help manage IPFS files and pins.
 
 ## Installation
 
 ```bash
-bun install
+# Install globally from GitHub
+npm install -g kien-ngo/clipfs
 ```
 
 ## Usage
 
-### Display Pin Table
-
-View files in IPFS MFS:
-
 ```bash
-# Simple list format
-bun pintable
+# Show help
+clipfs
 
-# Enhanced table format
-bun pintable --enhanced
-# or
-bun pintable -E
+# View IPFS MFS files in interactive table
+clipfs pintable
+
+# View peer table
+clipfs peertable
+
+# Pin management
+clipfs pin
 ```
 
 ### Interactive Pin Table
@@ -29,11 +30,7 @@ bun pintable -E
 Navigate and manage your IPFS files with an interactive interface:
 
 ```bash
-bun pintable:interactive
-# or
-bun pintable --interactive
-# or
-bun pintable -I
+clipfs pintable
 ```
 
 The interactive mode allows you to:
@@ -41,19 +38,30 @@ The interactive mode allows you to:
 - Press Enter to select a file
 - Choose from options:
   - 0: View file details
-  - 1: Pin file
-  - 2: Unpin file 
-  - 3: Copy CID to clipboard
-  - 4: Exit
+  - 1: Unpin file 
+  - 2: Copy CID to clipboard
+  - 3: Exit
 
-### Other Commands
+## Requirements
+
+- Node.js ≥ 14
+- IPFS daemon running locally
+
+## Development
 
 ```bash
-# View peer table
-bun peertable
+# Clone the repository
+git clone https://github.com/kien-ngo/clipfs.git
+cd clipfs
 
-# Pin files
-bun pin
+# Install dependencies
+npm install
+
+# Build
+npm run build
+
+# Run commands locally
+npm run pintable
+npm run peertable
+npm run pin
 ```
-
-This project was created using `bun init` in bun v1.2.4. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.

@@ -1,13 +1,17 @@
 {
-  "name": "ipfs-cli-helper",
-  "module": "index.ts",
+  "name": "clipfs",
+  "version": "1.0.0",
+  "description": "CLI tools for IPFS",
   "type": "module",
-  "private": true,
+  "bin": {
+    "clipfs": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
   "devDependencies": {
     "@types/bun": "latest",
-    "@types/inquirer": "^9.0.7"
-  },
-  "peerDependencies": {
+    "@types/inquirer": "^9.0.7",
     "typescript": "^5"
   },
   "dependencies": {
@@ -15,8 +19,16 @@
     "inquirer": "^12.4.3"
   },
   "scripts": {
-    "pintable": "bun run src/pintable.ts",
-    "peertable": "bun run src/peertable.ts",
-    "pin": "bun run src/pin.ts"
-  }
+    "build": "tsc",
+    "pintable": "node dist/pintable.js",
+    "peertable": "node dist/peertable.js",
+    "pin": "node dist/pin.js",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kien-ngo/clipfs.git"
+  },
+  "author": "Kien Ngo",
+  "license": "MIT"
 }

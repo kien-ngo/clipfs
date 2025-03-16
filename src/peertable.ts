@@ -1,7 +1,7 @@
 import { exec } from "node:child_process";
 import util from "node:util";
 import Table from "cli-table3";
-import { formatSize } from "./utils/format-size";
+import { formatSize } from "./utils/format-size.js";
 
 const execAsync = util.promisify(exec);
 

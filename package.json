@@ -20,9 +20,9 @@
   },
   "scripts": {
     "build": "tsc",
-    "pintable": "node dist/pintable.js",
-    "peertable": "node dist/peertable.js",
-    "pin": "node dist/pin.js",
+    "pintable": "command -v bun >/dev/null && bun dist/pintable.js || node dist/pintable.js",
+    "peertable": "command -v bun >/dev/null && bun dist/peertable.js || node dist/peertable.js",
+    "pin": "command -v bun >/dev/null && bun dist/pin.js || node dist/pin.js",
     "prepublishOnly": "npm run build"
   },
   "repository": {

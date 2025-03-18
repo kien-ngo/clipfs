@@ -1,3 +1,4 @@
+// Require IPFS daemon to be running
 import { exec } from "node:child_process";
 import util from "node:util";
 

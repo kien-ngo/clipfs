@@ -1,3 +1,5 @@
+// Doesn't IPFS daemon to be running because this one fetches data from MFS
+
 import { exec } from "node:child_process";
 import util from "node:util";
 import Table from "cli-table3";
@@ -68,7 +70,17 @@ async function displayInteractiveTable(filesData: FileData[]) {
 	}
 
 	console.log(table.toString());
-
+	const choices = [
+		...filesData.map((file, index) => ({
+			name: `${file.name} (${file.type}, ${formatSize(file.size)})`,
+			value: index,
+		})),
+		{ name: "Exit", value: -1 },
+	];
+	// When the list is too long, we append the "Exit" option at the beginning of the array
+	if (choices.length > 10) {
+		choices.unshift({ name: "Exit", value: -1 });
+	}
 	// Let user select a row
 	const { selectedFile } = await inquirer.prompt([
 		{

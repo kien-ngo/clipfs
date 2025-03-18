@@ -1,3 +1,5 @@
+// Require IPFS daemon to be running
+
 import { exec } from "node:child_process";
 import util from "node:util";
 import Table from "cli-table3";
@@ -46,7 +48,16 @@ async function getPeerInfo(ip: string) {
 
 async function main() {
 	const args = process.argv.slice(2);
-	const peers = (await listPeers()).splice(0, 20);
+	if (args.some((arg) => arg.startsWith("--limit="))) {
+		console.log(
+			"The list of peer will be limited to 20 items. To custom the limit, use the `--limit` flag",
+		);
+	}
+	let limit = 20;
+	for (const arg of args) {
+		if (arg.startsWith("--limit=")) limit = Number(arg.split("=")[1] || 20);
+	}
+	const peers = (await listPeers()).splice(0, limit);
 	const table = new Table({ head: ["PeerID", "Location"] });
 	const tableData = (
 		await Promise.all(

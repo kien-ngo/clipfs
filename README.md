@@ -1,12 +1,14 @@
 # clipfs
 
-A CLI tool to help manage IPFS files and pins.
+A CLI tool to help manage IPFS files and pins.  
+This is a JS app that requires either Bun or Node runtime to be installed on your machine. It interacts directly with the IPFS Kube RPC commands via `exec` from `node:child_process`.
 
 ## Installation
 
 ```bash
 # Install globally from GitHub
-npm install -g kien-ngo/clipfs
+npm install -g @kienngo/clipfs
+bun install -g @kienngo/clipfs
 ```
 
 ## Usage
@@ -44,8 +46,8 @@ The interactive mode allows you to:
 
 ## Requirements
 
-- Node.js ≥ 14
-- IPFS daemon running locally
+- Node.js ≥ 14 or Bun
+- IPFS daemon running locally (IPFS Kubo installed on your machine)
 
 ## Development
 
@@ -64,4 +66,8 @@ npm run build
 npm run pintable
 npm run peertable
 npm run pin
+## Bun
+bun pintable
+bun peertable
+bun pin <option>
 ```

@@ -1,20 +1,21 @@
 // Require IPFS daemon to be running
-import { exec } from "node:child_process";
-import util from "node:util";
-
-const execAsync = util.promisify(exec);
 
 async function pinCID(cid: string, label?: string, showProgress = true) {
 	try {
 		const progressFlag = showProgress ? "--progress" : "";
-		const pinCmd = `ipfs pin add ${progressFlag} ${cid}`;
 		if (!label) {
-			const { stdout } = await execAsync(pinCmd);
+			const args = ["ipfs", "pin", "add"];
+			if (progressFlag) args.push(progressFlag);
+			args.push(cid);
+			const proc = Bun.spawn(args, { stdout: "pipe" });
+			const stdout = await new Response(proc.stdout).text();
 			console.log(stdout.trim());
 		} else {
-			const cmd1 = `$(${pinCmd} | cut -f 2 -d ' ')`;
-			const cmd = `ipfs files cp /ipfs/${cmd1} /"${label}"`;
-			const { stdout } = await execAsync(cmd);
+			// For complex operations with pipes, we'll use bash
+			const pinCmd = `ipfs pin add ${progressFlag} ${cid}`;
+			const cmd = `${pinCmd} | cut -f 2 -d ' ' | xargs -I {} ipfs files cp /ipfs/{} /"${label}"`;
+			const proc = Bun.spawn(["bash", "-c", cmd], { stdout: "pipe" });
+			const stdout = await new Response(proc.stdout).text();
 			console.log(stdout.trim());
 			console.log(`Pinned [${cid}] with label: [${label}]`);
 		}

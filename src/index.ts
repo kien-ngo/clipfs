@@ -1,10 +1,7 @@
-#!/usr/bin/env node
-
-import { spawn } from "node:child_process";
+#!/usr/bin/env bun
 import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
 
-const __filename = fileURLToPath(import.meta.url);
+const __filename = Bun.fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const command = process.argv[2];
@@ -34,8 +31,10 @@ const args = process.argv.slice(3);
 const scriptPath = join(__dirname, `${command}.js`);
 
 // Execute the corresponding script
-const child = spawn("node", [scriptPath, ...args], { stdio: "inherit" });
+const child = Bun.spawn(["bun", scriptPath, ...args], {
+	stdio: ["inherit", "inherit", "inherit"],
+});
 
-child.on("close", (code) => {
+child.exited.then((code) => {
 	process.exit(code || 0);
 });

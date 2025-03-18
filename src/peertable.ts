@@ -1,18 +1,17 @@
-// Require IPFS daemon to be running
+/**
+ * @description Show a table for all the current peers that connects with your IPFS Node
+ * @requires IPFS Node (Daemon) to be running
+ */
 
-import { exec } from "node:child_process";
-import util from "node:util";
 import Table from "cli-table3";
-import { formatSize } from "./utils/format-size.js";
-
-const execAsync = util.promisify(exec);
 
 /**
  * Run the command `ipfs swarm peers` to list all the labels
  * then split the strings from the list of results & extract the peerId from each strings
  */
 async function listPeers(): Promise<string[]> {
-	const { stdout } = await execAsync("ipfs swarm peers");
+	const proc = Bun.spawn(["ipfs", "swarm", "peers"], { stdout: "pipe" });
+	const stdout = await new Response(proc.stdout).text();
 	return stdout.trim().split("\n");
 }
 
@@ -48,9 +47,9 @@ async function getPeerInfo(ip: string) {
 
 async function main() {
 	const args = process.argv.slice(2);
-	if (args.some((arg) => arg.startsWith("--limit="))) {
+	if (!args.some((arg) => arg.startsWith("--limit="))) {
 		console.log(
-			"The list of peer will be limited to 20 items. To custom the limit, use the `--limit` flag",
+			"The list of peer will be limited to 20 items by default. To custom the limit, use the `--limit` flag",
 		);
 	}
 	let limit = 20;

@@ -1,12 +1,11 @@
-// Doesn't IPFS daemon to be running because this one fetches data from MFS
+/**
+ * @description Show a table of the pin content & their labels (aliases)
+ * Doesn't IPFS daemon to be running because this one fetches data from MFS
+ */
 
-import { exec } from "node:child_process";
-import util from "node:util";
 import Table from "cli-table3";
 import inquirer from "inquirer";
 import { formatSize } from "./utils/format-size.js";
-
-const execAsync = util.promisify(exec);
 
 type FileData = {
 	name: string;
@@ -20,7 +19,8 @@ type FileData = {
  * then split the strings from the list of results to get all the folder name
  */
 async function listFiles(): Promise<string[]> {
-	const { stdout } = await execAsync("ipfs files ls /");
+	const proc = Bun.spawn(["ipfs", "files", "ls", "/"], { stdout: "pipe" });
+	const stdout = await new Response(proc.stdout).text();
 	return stdout.trim().split("\n");
 }
 
@@ -29,7 +29,10 @@ async function listFiles(): Promise<string[]> {
  * For directory we will be using "CumulativeSize", otherwise use "Size"
  */
 async function getFileStat(path: string) {
-	const { stdout } = await execAsync(`ipfs files stat /"${path}"`);
+	const proc = Bun.spawn(["ipfs", "files", "stat", `/"${path}"`], {
+		stdout: "pipe",
+	});
+	const stdout = await new Response(proc.stdout).text();
 	const lines = stdout.trim().split("\n");
 	const cid = lines[0];
 	const size = Number.parseInt(
@@ -66,13 +69,18 @@ async function displayInteractiveTable(filesData: FileData[]) {
 	});
 
 	for (const file of filesData) {
-		table.push([file.name, file.cid, formatSize(file.size), file.type]);
+		table.push([
+			file.name.trim() || "(no name)",
+			file.cid,
+			formatSize(file.size),
+			file.type,
+		]);
 	}
 
 	console.log(table.toString());
 	const choices = [
 		...filesData.map((file, index) => ({
-			name: `${file.name} (${file.type}, ${formatSize(file.size)})`,
+			name: `${file.name.trim() || "(no name)"} (${file.type}, ${formatSize(file.size)})`,
 			value: index,
 		})),
 		{ name: "Exit", value: -1 },
@@ -87,14 +95,7 @@ async function displayInteractiveTable(filesData: FileData[]) {
 			type: "list",
 			name: "selectedFile",
 			message: "Select a file (use arrow keys):",
-			choices: [
-				{ name: "Exit", value: -1 },
-				...filesData.map((file, index) => ({
-					name: `${file.name} (${file.type}, ${formatSize(file.size)})`,
-					value: index,
-				})),
-				{ name: "Exit", value: -1 },
-			],
+			choices,
 		},
 	]);
 
@@ -133,11 +134,11 @@ async function displayInteractiveTable(filesData: FileData[]) {
 			break;
 		case 1:
 			console.log(`Unpinning ${selected.name}...`);
-			await execAsync(`ipfs pin rm ${selected.cid}`);
+			await Bun.spawn(["ipfs", "pin", "rm", selected.cid]).exited;
 			break;
 		case 2:
 			// Copy to clipboard - using a simple approach for now
-			await execAsync(`echo "${selected.cid}" | pbcopy`);
+			await Bun.spawn(["bash", "-c", `echo "${selected.cid}" | pbcopy`]).exited;
 			console.log("CID copied to clipboard!");
 			break;
 		case 3:

@@ -1,6 +1,6 @@
 {
   "name": "@kienngo/clipfs",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "CLI tools for IPFS",
   "type": "module",
   "bin": {
@@ -30,5 +30,11 @@
     "url": "git+https://github.com/kien-ngo/clipfs.git"
   },
   "author": "Kien Ngo",
-  "license": "MIT"
+  "license": "MIT",
+  "keywords": [
+    "ipfs",
+    "ipfs-kubo",
+    "ipfs-webui",
+    "bun"
+  ]
 }

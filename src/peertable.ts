@@ -1,3 +1,4 @@
+import { $ } from "bun";
 /**
  * @description Show a table for all the current peers that connects with your IPFS Node
  * @requires IPFS Node (Daemon) to be running
@@ -10,8 +11,7 @@ import Table from "cli-table3";
  * then split the strings from the list of results & extract the peerId from each strings
  */
 async function listPeers(): Promise<string[]> {
-	const proc = Bun.spawn(["ipfs", "swarm", "peers"], { stdout: "pipe" });
-	const stdout = await new Response(proc.stdout).text();
+	const stdout = (await $`ipfs swarm peers`).text();
 	return stdout.trim().split("\n");
 }
 

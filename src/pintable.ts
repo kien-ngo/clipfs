@@ -1,3 +1,4 @@
+import { $ } from "bun";
 /**
  * @description Show a table of the pin content & their labels (aliases)
  * Doesn't IPFS daemon to be running because this one fetches data from MFS
@@ -19,9 +20,11 @@ type FileData = {
  * then split the strings from the list of results to get all the folder name
  */
 async function listFiles(): Promise<string[]> {
-	const proc = Bun.spawn(["ipfs", "files", "ls", "/"], { stdout: "pipe" });
-	const stdout = await new Response(proc.stdout).text();
-	return stdout.trim().split("\n");
+	const stdout = (await $`ipfs files ls /`).text();
+	return stdout
+		.trim()
+		.split("\n")
+		.filter((o) => !!o);
 }
 
 /**
@@ -29,10 +32,7 @@ async function listFiles(): Promise<string[]> {
  * For directory we will be using "CumulativeSize", otherwise use "Size"
  */
 async function getFileStat(path: string) {
-	const proc = Bun.spawn(["ipfs", "files", "stat", `/"${path}"`], {
-		stdout: "pipe",
-	});
-	const stdout = await new Response(proc.stdout).text();
+	const stdout = (await $`ipfs files stat /"${path}"`).text();
 	const lines = stdout.trim().split("\n");
 	const cid = lines[0];
 	const size = Number.parseInt(
@@ -134,11 +134,10 @@ async function displayInteractiveTable(filesData: FileData[]) {
 			break;
 		case 1:
 			console.log(`Unpinning ${selected.name}...`);
-			await Bun.spawn(["ipfs", "pin", "rm", selected.cid]).exited;
+			await $`ipfs pin rm ${selected.cid}`;
 			break;
 		case 2:
-			// Copy to clipboard - using a simple approach for now
-			await Bun.spawn(["bash", "-c", `echo "${selected.cid}" | pbcopy`]).exited;
+			await $`bash -c echo "${selected.cid}" | pbcopy`.quiet();
 			console.log("CID copied to clipboard!");
 			break;
 		case 3:
@@ -152,7 +151,9 @@ async function displayInteractiveTable(filesData: FileData[]) {
  */
 async function main() {
 	const files = await listFiles();
-
+	if (!files.length) {
+		return console.log("No pin found");
+	}
 	// Collect all file data first
 	const filesData: FileData[] = [];
 	for (const file of files) {
